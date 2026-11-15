@@ -1,6 +1,9 @@
 import random
+import heapq
+from loader import load_map
 import networkx as nx
 import matplotlib.pyplot as plt
+
 
 def generate_weighted_graph(num_verticies, num_edges, directed= False, weight_range=(1,10)):
     '''error handling'''
@@ -54,15 +57,64 @@ def visualizer(Graph):
   edge_labels=nx.get_edge_attributes(Graph, 'weight')
   nx.draw_networkx_edge_labels(Graph, visualize, edge_labels= edge_labels)
   plt.show()
+
+
+def dijkstra(grid, start, goal):
+    pq = [(0, start)]
+    distances = {start: 0}
+    previous = {}
+    visited = set()
+    nodes_expanded = 0
+
+    directions = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+
+    while pq:
+        dist, current = heapq.heappop(pq)
+
+        if current in visited:
+            continue
+
+        visited.add(current)
+        nodes_expanded += 1
+
+        if current == goal:
+            path = []
+
+            while current != start:
+                path.append(current)
+                current = previous[current]
+
+            path.append(start)
+            path.reverse()
+
+            return path, nodes_expanded
+
+        row, col = current
+
+        for dr, dc in directions:
+            nr = row + dr
+            nc = col + dc
+
+            if 0 <= nr < len(grid) and 0 <= nc < len(grid[0]):
+                if grid[nr][nc] == 0:
+                    neighbor = (nr, nc)
+                    new_dist = dist + 1
+
+                    if new_dist < distances.get(neighbor, float('inf')):
+                        distances[neighbor] = new_dist
+                        previous[neighbor] = current
+                        heapq.heappush(pq, (new_dist, neighbor))
+
+    return [], nodes_expanded
   
 
 if __name__== '__main__':
     user_option= input("Hello and welcome to the Dijkstra visualizer! " \
-    "Would you like to use a random graph of a premade one?: RANDOM || PREMADE\n").upper()
+    "Please Slelect an option: RANDOM || PREMADE || GROUP TEST\n").upper()
 
-    while (user_option!= "RANDOM" and user_option!= "PREMADE"):
+    while (user_option!= "RANDOM" and user_option!= "PREMADE" and user_option!="GROUP TEST"):
         print("That was not a valid option! Please choose again!\n")
-        user_option= input("RANDOM || PREMADE\n").upper()
+        user_option= input("RANDOM || PREMADE || GROUP TEST\n").upper()
     
     if (user_option== 'PREMADE'):
         premade_choice= input("Great! Which premade option would you like to run?:" \
@@ -83,6 +135,14 @@ if __name__== '__main__':
         elif (premade_choice== 'PREMADE 3'):
             num_verticies=12
             graph=generate_weighted_graph(num_verticies, 11, False, (2,15))
+    elif (user_option== "GROUP TEST"):
+        map_name = input("Enter map filename: ")
+        grid, start, goal = load_map(map_name)
+        path, nodes_expanded = dijkstra(grid, start, goal)
+
+        print("Shortest path:", path)
+        print("Nodes expanded:", nodes_expanded)
+
     else:
         num_verticies= random.randint(2, 10)
 
@@ -100,10 +160,11 @@ if __name__== '__main__':
         graph= generate_weighted_graph(num_verticies, num_edges, directed, weight_range)
 
     '''Dijkstra'''
-    try:
-        dijkstra_path = nx.dijkstra_path(graph, 0, num_verticies - 1, weight='weight')
-        print(f"Shortest path using Dijkstra: {dijkstra_path}")
-        visualizer(graph)
-    except nx.NetworkXNoPath:
-        print("No path exists!")
-        visualizer(graph)
+    if (user_option!= "GROUP TEST"):
+        try:
+            dijkstra_path = nx.dijkstra_path(graph, 0, num_verticies - 1, weight='weight')
+            print(f"Shortest path using Dijkstra: {dijkstra_path}")
+            visualizer(graph)
+        except nx.NetworkXNoPath:
+            print("No path exists!")
+            visualizer(graph)
