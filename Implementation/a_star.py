@@ -1,90 +1,11 @@
 import os, sys
+import heapq
 sys.path.append(os.path.join(os.path.dirname(__file__), "..", "group11_test_maps"))
-map_path = os.path.join(os.path.dirname(__file__), "..", "group11_test_maps", "map02_small.txt")
 
 from loader import load_map
-grid, start, goal = load_map(map_path)
+from bfs_dfs import bfs, dfs
 
-from collections import deque
-import heapq
-
-
-# --- BFS Algorithm ----
-def bfs(grid, start, goal):
-    rows, cols = len(grid), len(grid[0])
-    if start == goal:
-        return [start], 1
-
-    visited = {start}
-    queue = deque([start])
-    parent = {start: None}
-    nodes_expanded = 0
-
-    while queue:
-        r, c = queue.popleft()
-        nodes_expanded += 1
-
-        for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-            nr, nc = r + dr, c + dc
-            neighbor = (nr, nc)
-            if 0 <= nr < rows and 0 <= nc < cols and grid[nr][nc] == 0 and neighbor not in visited:
-                visited.add(neighbor)
-                parent[neighbor] = (r, c)
-
-                if neighbor == goal:
-                    path = []
-                    while neighbor is not None:
-                        path.append(neighbor)
-                        neighbor = parent[neighbor]
-                    return path[::-1], nodes_expanded
-
-                queue.append(neighbor)
-
-    return None, nodes_expanded
-
-path, nodes_expanded = bfs(grid, start, goal)
-print("BFS path length:", len(path) if path else None, "nodes expanded:", nodes_expanded)
-
-
-
-# --- DFS Algorithm ----
-
-def dfs(grid, start, goal):
-    rows, cols = len(grid), len(grid[0])
-
-    visited = set()
-    stack = [(start, None)]
-    parent = {}
-    nodes_explained = 0
-
-    while stack:
-        node, par = stack.pop()
-        if node in visited:
-            continue
-
-        visited.add(node)
-        parent[node] = par
-        nodes_explained += 1
-
-        if node == goal:
-            path = []
-            while node is not None:
-                path.append(node)
-                node = parent[node]
-            return path[::-1], nodes_explained
-
-        r, c = node
-        for dr, dc in [(-1, 0), (1, 0), ( 0, -1), (0, 1)]:
-            nr, nc = r + dr, c + dr
-            neighbor = (nr, nc)
-            if 0 <= nr < rows and 0 <= nc < cols and grid[nr][nc] == 0 and neighbor not in visited:
-                stack.append((neighbor, node))
-
-    return None,  nodes_expanded
-
-path, nodes_expanded = dfs(grid, start, goal)
-print("DFS path length:", len(path) if path else None, "nodes expanded:", nodes_expanded)
-
+MAPS_DIR = os.path.join(os.path(__file__), "..", "group11_test_maps")
 
 
 # --- A_star Algorithm ----
@@ -133,6 +54,10 @@ def a_star(grid, start, goal):
 
     return None, nodes_expanded
 
-path, nodes_expanded = a_star(grid, start, goal)
-print("A_start path length:", len(path) if path else None, "nodes expanded:", nodes_expanded)
+if __name__ == "__main__":
+    MAP_NAME = "map01_tiny.txt"
+    grid, start, goal = load_map(os.path.join(MAPS_DIR, MAP_NAME))
 
+    for algo_name, algo in [("BFS", bfs), ("DFS", dfs), ("A*", a_star)]:
+        path, nodes_expanded = algo(grid, start, goal)
+        print(algo_name, "path length:", len(path) if path else None, "nodes expanded:", nodes_expanded)
