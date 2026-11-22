@@ -71,6 +71,7 @@ def dijkstra(grid, start, goal):
     while pq:
         dist, current = heapq.heappop(pq)
 
+        # if we've already visited the location
         if current in visited:
             continue
 
@@ -80,10 +81,12 @@ def dijkstra(grid, start, goal):
         if current == goal:
             path = []
 
+            # takes end and moves backwards to get the path
             while current != start:
                 path.append(current)
                 current = previous[current]
 
+            # flips it to go from start to finish
             path.append(start)
             path.reverse()
 
@@ -91,22 +94,26 @@ def dijkstra(grid, start, goal):
 
         row, col = current
 
-        for dr, dc in directions:
-            nr = row + dr
-            nc = col + dc
+        for row_change, col_change in directions:
+            new_row = row + row_change
+            new_col = col + col_change
 
-            if 0 <= nr < len(grid) and 0 <= nc < len(grid[0]):
-                if grid[nr][nc] == 0:
-                    neighbor = (nr, nc)
+            # is neighbor inside grid check (both row and col)
+            if 0 <= new_row < len(grid) and 0 <= new_col < len(grid[0]):
+                # seeing if the neighbor is a wall (1) or open space (0)
+                if grid[new_row][new_col] == 0:
+                    neighbor = (new_row, new_col)
                     new_dist = dist + 1
 
+                    #check to see if calculated distance is < or > than 
+                    # recorded dist (infinity if just found)
                     if new_dist < distances.get(neighbor, float('inf')):
                         distances[neighbor] = new_dist
                         previous[neighbor] = current
                         heapq.heappush(pq, (new_dist, neighbor))
 
     return [], nodes_expanded
-  
+
 
 if __name__== '__main__':
     user_option= input("Hello and welcome to the Dijkstra visualizer! " \
