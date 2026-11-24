@@ -14,12 +14,10 @@ def manhattan(a, b):
 def astar(grid, start, goal):
     """
     Execute A* search on a 2D grid using 4-directional movement. (up, down, left, right)
-
     Parameters:
         grid: 2D list representing the map layout.
         start: (row, col) tuple for the starting position.
         goal: (row, col) tuple for the target position.
-
     Returns:
         path: Ordered list of (row, col) coordinates from start to goal,
               or None if no valid path exists.
@@ -41,7 +39,7 @@ def astar(grid, start, goal):
             and grid[r][c] in (0, ".", "S", "G", " ")
         )
 
-    # Abort early if the start or goal position is out of bounds or blocked.
+    # End early if the start or goal position is out of bounds or blocked.
     # The '*' (unpacking operator) splits a (row, col) tuple into two separate
     # arguments: is_walkable(*start) = is_walkable(start[0], start[1]).
     if not is_walkable(*start) or not is_walkable(*goal):
@@ -57,22 +55,16 @@ def astar(grid, start, goal):
     # - insertion_counter: (Second) tie-breaker taking out node first 
     #    inserted into priority queue
     open_heap = [(h_start, h_start, 0, start)]
-
     # Maps each node to the predecessor node that led to it along the cheapest known path
     came_from = {}
-
     # Stores the exact minimum step cost (g) found so far from start to each node
     g_score = {start: 0}
-
     # Tracks nodes that have already been popped and fully expanded
     closed = set()
-
     # Counter for total unique nodes expanded during the search
     nodes_expanded = 0
-
     # Monotonically increasing counter for heap tie-breaking (for when both f and h scores tie)
     counter = 1
-
     # Movement offsets: Up (-1, 0), Down (1, 0), Left (0, -1), Right (0, 1)
     directions = ((-1, 0), (1, 0), (0, -1), (0, 1))
 
@@ -82,15 +74,12 @@ def astar(grid, start, goal):
         # Unpack the 4-item tuple; '_' is used as a throwaway variable for
         # f_score, h_score, and counter since we only need 'current' here.
         _, _, _, current = heapq.heappop(open_heap)
-
         # Skip nodes we already finished checking
         if current in closed:
             continue
-
         # Mark current node as expanded
         closed.add(current)
         nodes_expanded += 1  
-
         # If goal (end) node is popped, worked backwards and get the shortest path 
         if current == goal:
             path = [current]
@@ -99,7 +88,6 @@ def astar(grid, start, goal):
                 path.append(current)
             path.reverse()  # Reverse backtracked path so it runs from start to goal
             return path, nodes_expanded
-
         current_g = g_score[current]
         # Unpack current (row, col) tuple into separate row (r) and column (c) variables
         r, c = current
@@ -108,14 +96,11 @@ def astar(grid, start, goal):
         for dr, dc in directions:
             nr, nc = r + dr, c + dc
             neighbor = (nr, nc)
-
             # Ignore out-of-bounds cells, walls, and already expanded nodes
             if neighbor in closed or not is_walkable(nr, nc):
                 continue
-
             # Cost from start to neighbor through current 
             tentative_g = current_g + 1 # each node is 1 away from each other
-
             # g_score.get(neighbor, float("inf")) looks up the best known cost to
             # 'neighbor', or defaults to infinity if 'neighbor' has never been visited.
             if tentative_g < g_score.get(neighbor, float("inf")):
@@ -123,16 +108,13 @@ def astar(grid, start, goal):
                 g_score[neighbor] = tentative_g
                 h = manhattan(neighbor, goal)
                 f = tentative_g + h
-
                 # Push updated neighbor entry onto the priority queue
                 heapq.heappush(open_heap, (f, h, counter, neighbor))
                 counter += 1
-
     # Every reachable node explored, so no path exists 
     return None, nodes_expanded  
 
-
-# --- Batch Test Runner Across All 6 Maps ---
+# --- Run all 6 test maps using A* ---
 if __name__ == "__main__":
     test_maps = [
         "map01_tiny.txt",
@@ -142,10 +124,9 @@ if __name__ == "__main__":
         "map05_open.txt",
         "map06_nopath.txt",
     ]
-
     for map_name in test_maps:
         grid, start, goal = load_map(map_name)
         path, nodes_expanded = astar(grid, start, goal)
-        # Number of steps is len(path) - 1 because 'path' includes both start and goal
+        # Number of steps is len(path) - 1 because 'path' includes both start and goal (end)
         steps = len(path) - 1 if path else "No Path"
         print(f"{map_name:22} | steps: {str(steps):8} | nodes_expanded: {nodes_expanded}")
