@@ -5,7 +5,7 @@ import heapq
 def manhattan(a, b):
     """
     Calculates the Manhattan (L1) distance between two (row, col) coordinates.
-    Admissible and consistent heuristic for 4-directional grid movement.
+    This is an admissible heuristic for 4-directional grid movement.
     """
     # a[0], b[0] are the rows; a[1], b[1] are the columns
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
@@ -13,7 +13,7 @@ def manhattan(a, b):
 
 def astar(grid, start, goal):
     """
-    Executes A* search on a 2D grid using 4-directional movement.
+    Execute A* search on a 2D grid using 4-directional movement. (up, down, left, right)
 
     Parameters:
         grid: 2D list representing the map layout.
@@ -28,13 +28,12 @@ def astar(grid, start, goal):
     # Validate grid dimensions
     rows = len(grid)
     if rows == 0:
-        return None, 0  # Change None to [] if grader expects an empty list
+        return None, 0  
     cols = len(grid[0])
 
-    def is_walkable(r, c):
+    def is_walkable(r, c): # (Nested function)
         """
         Checks if a coordinate is within grid bounds and not an obstacle.
-        Supports both integer/boolean grids (0 = free) and character grids.
         """
         return (
             0 <= r < rows
@@ -44,19 +43,19 @@ def astar(grid, start, goal):
 
     # Abort early if the start or goal position is out of bounds or blocked.
     # The '*' (unpacking operator) splits a (row, col) tuple into two separate
-    # arguments: is_walkable(*start) is shorthand for is_walkable(start[0], start[1]).
+    # arguments: is_walkable(*start) = is_walkable(start[0], start[1]).
     if not is_walkable(*start) or not is_walkable(*goal):
-        return None, 0  # Change None to [] if grader expects an empty list
+        return None, 0  
 
     # Initial heuristic estimate from start to goal
     h_start = manhattan(start, goal)
 
     # Priority queue (min-heap) storing 4-item tuples:
     # (f_score, h_score, insertion_counter, (row, col))
-    # - f_score (g + h): Primary sorting key for optimal pathfinding.
-    # - h_score: Secondary tie-breaker preferring nodes closer to the goal.
-    # - insertion_counter: Tertiary tie-breaker ensuring first-in-first-out (FIFO)
-    #   order when f and h are equal.
+    # - f_score (g + h): Use this until there's a tie
+    # - h_score: (First) tie-breaker, preferr nodes closer to the goal.
+    # - insertion_counter: (Second) tie-breaker taking out node first 
+    #    inserted into priority queue
     open_heap = [(h_start, h_start, 0, start)]
 
     # Maps each node to the predecessor node that led to it along the cheapest known path
@@ -71,28 +70,28 @@ def astar(grid, start, goal):
     # Counter for total unique nodes expanded during the search
     nodes_expanded = 0
 
-    # Monotonically increasing counter for heap tie-breaking
+    # Monotonically increasing counter for heap tie-breaking (for when both f and h scores tie)
     counter = 1
 
-    # Orthogonal movement offsets: Up (-1, 0), Down (1, 0), Left (0, -1), Right (0, 1)
+    # Movement offsets: Up (-1, 0), Down (1, 0), Left (0, -1), Right (0, 1)
     directions = ((-1, 0), (1, 0), (0, -1), (0, 1))
 
-    # Main search loop: continues while there are frontier nodes left to explore
+    # Main search loop: continues while there are nodes left to explore
     while open_heap:
         # Pop the tuple with the smallest f_score from the min-heap.
-        # Unpacks the 4-item tuple; '_' is used as a throwaway variable for
+        # Unpack the 4-item tuple; '_' is used as a throwaway variable for
         # f_score, h_score, and counter since we only need 'current' here.
         _, _, _, current = heapq.heappop(open_heap)
 
-        # Skip stale heap entries for nodes that were already expanded via a shorter path
+        # Skip nodes we already finished checking
         if current in closed:
             continue
 
         # Mark current node as expanded
         closed.add(current)
-        nodes_expanded += 1  # Move this line BELOW the 'if current == goal:' block if your grader does not count the goal as expanded
+        nodes_expanded += 1  
 
-        # Goal check: reconstruct and return the optimal path if the target is reached
+        # If goal (end) node is popped, worked backwards and get the shortest path 
         if current == goal:
             path = [current]
             while current in came_from:
@@ -114,8 +113,8 @@ def astar(grid, start, goal):
             if neighbor in closed or not is_walkable(nr, nc):
                 continue
 
-            # Cost from start to neighbor through current (uniform step cost of 1)
-            tentative_g = current_g + 1
+            # Cost from start to neighbor through current 
+            tentative_g = current_g + 1 # each node is 1 away from each other
 
             # g_score.get(neighbor, float("inf")) looks up the best known cost to
             # 'neighbor', or defaults to infinity if 'neighbor' has never been visited.
@@ -129,8 +128,8 @@ def astar(grid, start, goal):
                 heapq.heappush(open_heap, (f, h, counter, neighbor))
                 counter += 1
 
-    # Open list exhausted without reaching the goal; no valid path exists
-    return None, nodes_expanded  # Change None to [] if grader expects an empty list
+    # Every reachable node explored, so no path exists 
+    return None, nodes_expanded  
 
 
 # --- Batch Test Runner Across All 6 Maps ---
